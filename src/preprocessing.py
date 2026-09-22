@@ -71,3 +71,17 @@ def build_logistic_baseline(X: pd.DataFrame) -> Pipeline:
             ("model", LogisticRegression(max_iter=1000, random_state=RANDOM_STATE)),
         ]
     )
+
+def build_logistic_class_weighted(X: pd.DataFrame) -> Pipeline:
+    """Logistic regression with class_weight='balanced'.
+
+    scikit-learn reweights the loss inversely proportional to class frequency, so
+    mistakes on the minority (churn) class are penalised more. This addresses
+    imbalance WITHOUT duplicating or discarding any rows.
+    """
+    return Pipeline(
+        steps=[
+            ("preprocess", build_preprocessor(X)),
+            ("model", LogisticRegression(max_iter=1000, class_weight="balanced", random_state=RANDOM_STATE)),
+        ]
+    )
