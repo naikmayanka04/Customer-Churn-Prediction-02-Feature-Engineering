@@ -63,6 +63,31 @@ def evaluate_on(model, X, y, threshold: float = 0.5) -> tuple[dict, np.ndarray, 
     pred = (proba >= threshold).astype(int)
     return compute_metrics(y, pred, proba), pred, proba
 
+def cross_validate_resampled(build_model_fn, X, y, resample_fn=None, n_splits: int = CV_FOLDS,
+                              random_state: int = RANDOM_STATE) -> pd.DataFrame:
+    """Stratified k-fold CV with an optional resampling step applied INSIDE each fold.
+
+    Unlike `cross_validate_on_train`, this does not use scikit-learn's
+    `cross_validate` (whose Pipeline cannot resample rows), so it is used
+    specifically to evaluate a resampling strategy (e.g. random oversampling)
+    without leaking duplicated rows across the fold boundary: for every fold,
+    `resample_fn` sees only that fold's training rows, and the validation
+    rows are always the original, un-resampled data.
+    """
+    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    rows = []
+    for train_idx, val_idx in cv.split(X, y):
+        X_tr, X_val = X.iloc[train_idx], X.iloc[val_idx]
+        y_tr, y_val = y.iloc[train_idx], y.iloc[val_idx]
+        if resample_fn is not None:
+            X_tr, y_tr = resample_fn(X_tr, y_tr)
+        model = build_model_fn(X_tr)
+        model.fit(X_tr, y_tr)
+        metrics, _, _ = evaluate_on(model, X_val, y_val)
+        rows.append(metrics)
+    df = pd.DataFrame(rows)
+    return df.agg(["mean", "std"]).T
+
 
 def plot_confusion_matrix(y_true, y_pred, title="Confusion matrix", save_to: Path | None = None):
     fig, ax = plt.subplots(figsize=(4.5, 4))
