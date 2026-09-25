@@ -63,7 +63,7 @@ def build_dummy_baseline(X: pd.DataFrame) -> Pipeline:
 def build_logistic_baseline(X: pd.DataFrame) -> Pipeline:
     """Plain logistic regression with default regularisation (C=1.0).
 
-    No class weighting and no tuning on purpose: this is the reference point.
+    No class weighting and no tuning on purpose: this is the Milestone 01 reference point.
     """
     return Pipeline(
         steps=[
@@ -71,6 +71,7 @@ def build_logistic_baseline(X: pd.DataFrame) -> Pipeline:
             ("model", LogisticRegression(max_iter=1000, random_state=RANDOM_STATE)),
         ]
     )
+
 
 def build_logistic_class_weighted(X: pd.DataFrame) -> Pipeline:
     """Logistic regression with class_weight='balanced'.
