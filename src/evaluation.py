@@ -27,6 +27,7 @@ CV_SCORING = {
     "recall": make_scorer(recall_score, zero_division=0),
     "f1": make_scorer(f1_score, zero_division=0),
     "roc_auc": "roc_auc",
+    "pr_auc": "average_precision",
 }
 
 
@@ -62,6 +63,7 @@ def evaluate_on(model, X, y, threshold: float = 0.5) -> tuple[dict, np.ndarray, 
     proba = model.predict_proba(X)[:, 1]
     pred = (proba >= threshold).astype(int)
     return compute_metrics(y, pred, proba), pred, proba
+
 
 def cross_validate_resampled(build_model_fn, X, y, resample_fn=None, n_splits: int = CV_FOLDS,
                               random_state: int = RANDOM_STATE) -> pd.DataFrame:
